@@ -6,7 +6,7 @@ var saveChanges = function (theValue, cb) {
 	}
 	console.log(cb)
 	// Save it using the Chrome extension storage API.
-	chrome.storage.sync.set(theValue, cb);
+	chrome.storage.local.set(theValue, cb);
 }
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {

@@ -1,17 +1,51 @@
-﻿
-body {
+﻿body {
     font-family: "Segoe UI", "Lucida Grande", Tahoma, sans-serif;
     font-size: 100%;
 }
 
-#status {
-    /* avoid an excessively wide status text */
-    white-space: pre;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    max-width: 400px;
+div.button{
+	
 }
 
-div {
-    background-color: blue;
+.control-button {
+	height:100%;
+	width:25px;
+	background-color: transparent;
+	border:none;
+}
+
+.scroll {
+	height:100%;
+	position:relative;
+}
+
+.scroll-bar{
+	height: inherit;
+	line-height: 25px;
+}
+
+.scroll-handle{
+	position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 12px;
+    height: 12px;
+    margin: auto 0px;
+
+    background-color: gray;
+	border-radius: 8px;
+}
+
+.track {
+	height:25px;
+	font-size: 0;
+}
+
+#container {
+    /* avoid an excessively wide status text */
+    /*white-space: pre;*/
+    /*text-overflow: ellipsis;*/
+    /*overflow: hidden;*/
+    width: 300px;
+    height:450px;
 }
