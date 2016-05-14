@@ -7,4 +7,8 @@ var retrieve = function(){
 	});
 }
 
+$(document).mousemove(function(e){
+    $("#image").stop().animate({left:e.pageX});
+});
+
 retrieve();
