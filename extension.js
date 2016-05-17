@@ -1,3 +1,13 @@
+var positionScrub;
+
+var SCROLL_BAR_WIDTH = $(document).find("div.scroll-bar").first().width();
+
+var HANDLE_WIDTH = $(document).find("div.scroll-handle").first().width();
+var CONTAINER_OFFSET = document.getElementById("container").offsetLeft;
+var SCROLL_BAR_OFFSET = document.getElementsByClassName("scroll-bar")[0].offsetLeft;
+var OFFSET = CONTAINER_OFFSET + SCROLL_BAR_OFFSET + HANDLE_WIDTH/2;
+
+
 var retrieve = function(){
 	console.log("Retrieve");
 	console.log(chrome);
@@ -6,9 +16,35 @@ var retrieve = function(){
 	    console.log(allKeys);
 	});
 }
+var jumpTo = function(){
+	console.log("Progress jumped to");
+}
+	
+var findPosition = function(pageX){
+	var scrollPosition = (pageX - OFFSET)/SCROLL_BAR_WIDTH;
+	scrollPosition = Math.floor(scrollPosition * 100) + '%';
+	$( positionScrub ).find(".scroll-handle").stop(true, true).animate( { left:scrollPosition }, 0, "linear", jumpTo()) ;	
+}
 
-$(document).mousemove(function(e){
-    $("#image").stop().animate({left:e.pageX});
+$("div.scroll-bar").mousedown(function(event){
+	positionScrub = event.currentTarget;
+	findPosition(event.pageX);
+	return false;
 });
+
+$(document).mouseup(function(e){
+    positionScrub = null;
+    return false;
+});
+
+$(document).on('mousemove', function(e){
+	if(positionScrub){
+		findPosition(e.pageX);
+	}
+	return false;
+});
+
+
+
 
 retrieve();
