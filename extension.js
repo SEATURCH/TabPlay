@@ -17,12 +17,13 @@ var retrieve = function(){
 	});
 }
 var jumpTo = function(){
-	console.log("Progress jumped to");
+	// console.log("Progress jumped to");
 }
 	
 var findPosition = function(pageX){
-	var scrollPosition = (pageX - OFFSET)/SCROLL_BAR_WIDTH;
-	scrollPosition = Math.floor(scrollPosition * 100) + '%';
+	var scrollPosition = (pageX - OFFSET);
+	scrollPosition = scrollPosition < 0? 0 : scrollPosition > SCROLL_BAR_WIDTH-HANDLE_WIDTH/2? SCROLL_BAR_WIDTH-HANDLE_WIDTH:scrollPosition;
+	scrollPosition = Math.floor(scrollPosition/SCROLL_BAR_WIDTH * 100) + '%';
 	$( positionScrub ).find(".scroll-handle").stop(true, true).animate( { left:scrollPosition }, 0, "linear", jumpTo()) ;	
 }
 

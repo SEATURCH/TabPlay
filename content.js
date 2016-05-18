@@ -10,7 +10,8 @@ var focusedWindowId = undefined;
 var currentWindowId = undefined;
 
 var startUp = function(){
-	console.log("ran");
+	console.log("rans");
+	console.log(document);
 	console.log(chrome);
 }
 
