@@ -8,19 +8,42 @@ var tabs = {};
 var tabIds = [];	
 var focusedWindowId = undefined;
 var currentWindowId = undefined;
+var videoDOMList;
 
-var startUp = function(){
-	console.log("rans");
-	console.log(document);
-	console.log(chrome);
+var startUpCheck = function(){
+	videoDOMList = document.getElementsByTagName("video");
+	if( videoDOMList.length || true){
+		register();
+	}
 }
 
-chrome.runtime.sendMessage({
-	action: 'createWindow',
-	url: 'http://google.com'
-},
-function(createdWindow) {
-	console.log(createdWindow);
+var register = function() {
+	chrome.runtime.sendMessage({
+		action: 'registerTab'
+	},
+	function(response) {
+		console.log(response);
+	});
+}
+
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+	console.log(request);
+	var vid = videoDOMList[0].play();
+
+	switch(request.action){
+		case "jumpTo":
+			videoDOMList[0].play();
+			break;
+		case "togglePlay":
+			
+			break;
+		case "soundControl":
+			videoDOMList[0].play();
+			break;
+		default;
+			break;	
+	}
+	// sendResponse();
 });
 
-startUp();
+startUpCheck();
