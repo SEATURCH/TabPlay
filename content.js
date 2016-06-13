@@ -12,7 +12,7 @@ var videoDOMList;
 
 var startUpCheck = function(){
 	videoDOMList = document.getElementsByTagName("video");
-	if( videoDOMList.length || true){
+	if( videoDOMList.length ){
 		var vid = videoDOMList[0];
 		var indicatePlay = function(){
 			chrome.runtime.sendMessage({
@@ -22,10 +22,12 @@ var startUpCheck = function(){
 				console.log(response);
 			});
 		};
-		if(vid.autoPlay)
-			indicatePlay();
-		vid.onplaying = indicatePlay();
-
+		// if(vid.autoPlay){
+		// 	indicatePlay();
+		// 	console.log("autoplay")
+		// }
+			
+		// vid.onplaying = indicatePlay();
 		register();
 		console.log(videoDOMList)
 	}
@@ -41,9 +43,7 @@ var register = function() {
 }
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-	console.log(request);
 	var vid = videoDOMList[0];
-	console.log(vid)
 	switch(request.action){
 		case "jumpTo":
 			vid.currentTime = vid.duration * request.value;
@@ -56,12 +56,21 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 			}
 			break;
 		case "soundControl":
-			videoDOMList[0].play();
+			console.log("Current "+ vid.volume);
+			vid.volume = request.value;
+			
+			console.log("value "+ request.value);
+			console.log("after "+ vid.volume);
 			break;
 		default:
 			break;	
 	}
 	// sendResponse();
 });
+
+var hasChange = function(){
+	console.log("SSSS");
+}
+window.onhashchange = hasChange();
 
 startUpCheck();
