@@ -1,5 +1,5 @@
 var tabMap = {};
-
+var recheck = true;
 var saveChanges = function (theValue, cb) {
 	if (!theValue) {
 	  message('Error: No value specified');
@@ -10,17 +10,29 @@ var saveChanges = function (theValue, cb) {
 }
 
 chrome.tabs.onRemoved.addListener(function(tabId, removeInfo){
-	chrome.storage.local.remove(tabMap[tabId], function(){
-		console.log("successfull removal");
-		delete tabMap[tabId];
-	})
+	if(tabMap[tabId]){
+		chrome.storage.local.remove(tabMap[tabId], function(){
+			console.log("successfull removal");
+			delete tabMap[tabId];
+		});
+	}
 });
 
+chrome.webNavigation.onCompleted.addListener(function (details) {
+ 	var tabId = details.tabId;
+ 	if(recheck){
+ 		recheck = false;
+ 		chrome.tabs.sendMessage(tabId, {action:"recheck"}, function (response) {
+ 			recheck = true;
+ 		});
+ 	}
+})
+
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+	console.log(request);
   if (request && request.action === 'registerTab') {
 
 	  	// chrome.storage.local.clear(function(){  // ---------------
-
 	  	if(!tabMap[sender.tab.id]){
 	  		chrome.storage.local.get(null, function(items) {
 			    var nextEntry = Object.keys(items).length;
@@ -31,7 +43,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 					tabTitle: sender.tab.title,
 					tabUrl: sender.tab.url
 				}
-			    tabMap[sender.tab.id] = nextEntry.toString();
+				tabMap[sender.tab.id] = nextEntry.toString();
 			    saveChanges(saveObject, function() {
 					sendResponse('Tab registered');
 				});

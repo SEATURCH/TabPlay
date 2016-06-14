@@ -13,21 +13,21 @@ var videoDOMList;
 var startUpCheck = function(){
 	videoDOMList = document.getElementsByTagName("video");
 	if( videoDOMList.length ){
-		var vid = videoDOMList[0];
-		var indicatePlay = function(){
-			chrome.runtime.sendMessage({
-				action: 'registerTab'
-			},
-			function(response) {
-				console.log(response);
-			});
-		};
+		// var vid = videoDOMList[0];
+		// var indicatePlay = function(){
+		// 	chrome.runtime.sendMessage({
+		// 		action: 'registerTab'
+		// 	},
+		// 	function(response) {
+		// 		console.log(response);
+		// 	});
+		// };
 		// if(vid.autoPlay){
-		// 	indicatePlay();
+		// 	// indicatePlay();
 		// 	console.log("autoplay")
 		// }
 			
-		// vid.onplaying = indicatePlay();
+		// // vid.onplaying = indicatePlay();
 		register();
 		console.log(videoDOMList)
 	}
@@ -43,7 +43,7 @@ var register = function() {
 }
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-	var vid = videoDOMList[0];
+	var vid = (videoDOMList)?videoDOMList[0]:null;
 	switch(request.action){
 		case "jumpTo":
 			vid.currentTime = vid.duration * request.value;
@@ -62,15 +62,18 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 			console.log("value "+ request.value);
 			console.log("after "+ vid.volume);
 			break;
+		case "recheck":
+			startUpCheck();
+			break;			
 		default:
 			break;	
 	}
 	// sendResponse();
 });
 
-var hasChange = function(){
-	console.log("SSSS");
-}
-window.onhashchange = hasChange();
+// var hasChange = function(){
+// 	console.log("SSSS");
+// }
+// window.onhashchange = hasChange();
 
-startUpCheck();
+// startUpCheck();

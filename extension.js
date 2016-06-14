@@ -6,6 +6,7 @@ var retrieve = function(){
 		tabsHolder = items;
 	    var allKeys = Object.keys(tabsHolder);
 	    var template = document.getElementById("template");
+	    console.log(items);
 	    for(var key=0; key < allKeys.length; key++){
 	    	var clone = template.cloneNode(true);
 	    	clone.style.display = '';
