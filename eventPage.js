@@ -27,7 +27,7 @@ chrome.webNavigation.onCompleted.addListener(function (details) {
  		});
  	}
 })
-
+// chrome.storage.local.clear(function(){});
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 	console.log(request);
   if (request && request.action === 'registerTab') {
