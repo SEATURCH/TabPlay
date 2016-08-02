@@ -4,7 +4,7 @@ document.onload = function () {
     console.log("ran");
 }
 
-var tabs = {};
+var registered = false;;
 var tabIds = [];	
 var focusedWindowId = undefined;
 var currentWindowId = undefined;
@@ -13,32 +13,55 @@ var videoDOMList;
 var startUpCheck = function(){
 	videoDOMList = document.getElementsByTagName("video");
 	if( videoDOMList.length ){
-		// var vid = videoDOMList[0];
-		// var indicatePlay = function(){
-		// 	chrome.runtime.sendMessage({
-		// 		action: 'registerTab'
-		// 	},
-		// 	function(response) {
-		// 		console.log(response);
-		// 	});
-		// };
-		// if(vid.autoPlay){
-		// 	// indicatePlay();
-		// 	console.log("autoplay")
-		// }
+		for(var i=0; i < videoDOMList.length; i++ ){
 			
-		// // vid.onplaying = indicatePlay();
-		register();
-		console.log(videoDOMList)
+			// videoDOMList[i].addEventListener("playing", function(event){
+			//     register(event.target);
+			//     registered = true;
+			// });
+			videoDOMList[i].addEventListener("playing", function(event){
+			    register(event.target);
+			    registered = true;
+			});
+			// videoDOMList[i].onplay = function(event){
+			// 	console.log("OKOK")
+			//     register(event.target);
+			//     registered = true;
+			// };
+			videoDOMList[i].onpause  = function(event){
+				console.log(event.target.currentTime)
+			    updateStatus(event.target);
+			};
+		}
+
 	}
 }
 
-var register = function() {
+var updateStatus = function(targetElement) {
+	if(!targetElement.duration)
+		return;
+	
 	chrome.runtime.sendMessage({
-		action: 'registerTab'
+		action:"updateStatus",
+		isPlaying: false
 	},
 	function(response) {
-		console.log(response);
+		console.log("RegisteredPause");
+	});
+}
+
+var register = function(targetElement) {
+	if(!targetElement.duration)
+		return;
+	
+	chrome.runtime.sendMessage({
+		action: 'registerTab',
+		totalTime: targetElement.duration,
+		currentTime: targetElement.currentTime,
+		isPlaying: true
+	},
+	function(response) {
+		console.log("RegisteredPlay");
 	});
 }
 
@@ -56,19 +79,20 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 			}
 			break;
 		case "soundControl":
-			console.log("Current "+ vid.volume);
 			vid.volume = request.value;
-			
-			console.log("value "+ request.value);
-			console.log("after "+ vid.volume);
 			break;
 		case "recheck":
 			startUpCheck();
+			break;
+		case "checktime":
+			sendResponse({
+				newTime: vid.currentTime,
+				tab:request.tab
+			});
 			break;			
 		default:
 			break;	
 	}
-	// sendResponse();
 });
 
 // var hasChange = function(){

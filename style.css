@@ -30,9 +30,14 @@ div.button{
 }
 
 .playPause {
-    background-image:url(images/Play.png);
+    background-image:url(images/Pause.png);
 }
-
+.Paused{
+    background-image:url(images/Play.png) !important;
+}
+.pausePlay {
+    background-image:url(images/Pause.png);
+}
 .scroll-bar{
     position: absolute;
     width:100%;
@@ -58,6 +63,8 @@ div.button{
     position: relative;
     margin:10px 0px;
 }
+
+
 
 .volume {
     background-image:url(images/Volume.png);
@@ -112,4 +119,14 @@ div.button{
     width: 300px;
     padding: 0px 0px 1px 0px;
     /*height:450px;*/
+}
+
+#tabTitle{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100px;
+}
+
+#time{
+    
 }

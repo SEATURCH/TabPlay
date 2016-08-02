@@ -1,5 +1,3 @@
-var tabMap = {};
-var recheck = true;
 var saveChanges = function (theValue, cb) {
 	if (!theValue) {
 	  message('Error: No value specified');
@@ -10,54 +8,55 @@ var saveChanges = function (theValue, cb) {
 }
 
 chrome.tabs.onRemoved.addListener(function(tabId, removeInfo){
-	if(tabMap[tabId]){
-		chrome.storage.local.remove(tabMap[tabId], function(){
-			console.log("successfull removal");
-			delete tabMap[tabId];
-		});
-	}
+	chrome.storage.local.get(null, function(items) {
+		if(items.tabs.hasOwnProperty(tabId)){
+			chrome.storage.local.remove(items.tabs[tabId].toString(), function(){
+				console.log("successfull removal");
+				delete items.tabs[tabId];
+			});
+		}
+	});
 });
 
 chrome.webNavigation.onCompleted.addListener(function (details) {
  	var tabId = details.tabId;
- 	if(recheck){
- 		recheck = false;
- 		chrome.tabs.sendMessage(tabId, {action:"recheck"}, function (response) {
- 			recheck = true;
- 		});
- 	}
+ 	chrome.storage.local.get(null, function(items) {
+	 	if( !items.tabs || !items.tabs.hasOwnProperty(tabId)){
+	 		recheck = false;
+	 		chrome.tabs.sendMessage(tabId, {action:"recheck"}, function (response) {
+	 			recheck = true;
+	 		});
+	 	}
+	 });
 })
-// chrome.storage.local.clear(function(){});
+chrome.storage.local.clear(function(){});
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-	console.log(request);
-  if (request && request.action === 'registerTab') {
-
-	  	// chrome.storage.local.clear(function(){  // ---------------
-	  	if(!tabMap[sender.tab.id]){
-	  		chrome.storage.local.get(null, function(items) {
-			    var nextEntry = Object.keys(items).length;
+  		chrome.storage.local.get(null, function(items) {
+			if (request && request.action === 'registerTab') {
+  				items.tabs = items.tabs || {};
+  			    var nextEntry = sender.tab.id;
+			    items.tabs[sender.tab.id] = nextEntry;
 			    var saveObject = {};
 			    saveObject[nextEntry] = {
 					senderTab: sender.tab,
 					tabId: sender.tab.id,
 					tabTitle: sender.tab.title,
-					tabUrl: sender.tab.url
+					tabUrl: sender.tab.url,
+					videoCurrentTime: request.currentTime,
+					videoTotalTime: request.totalTime,
+					isPlaying: request.isPlaying
 				}
-				tabMap[sender.tab.id] = nextEntry.toString();
-			    saveChanges(saveObject, function() {
+				saveChanges(saveObject, function() {
 					sendResponse('Tab registered');
 				});
-			});
-	  	}
-	  		
-			
-		
-	  	// });	// ---------------
-  	 	
-    // chrome.windows.create({url: request.url}, function (win) {
-      // sendResponse(win);
-    // });
-  }
+				saveChanges({tabs:items.tabs}, function(){});
+			} else if (request && request.action === "updateStatus"){
+				var updateObject = {};
+				updateObject[sender.tab.id] = items[sender.tab.id];
+				updateObject[sender.tab.id].isPlaying = false;
+				saveChanges(updateObject, function(){console.log("StateUpdateComplete")});
+			}
+		});
 });
 
 
