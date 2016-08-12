@@ -21,15 +21,16 @@ chrome.tabs.onRemoved.addListener(function(tabId, removeInfo){
 chrome.webNavigation.onCompleted.addListener(function (details) {
  	var tabId = details.tabId;
  	chrome.storage.local.get(null, function(items) {
-	 	if( !items.tabs || !items.tabs.hasOwnProperty(tabId)){
-	 		recheck = false;
+	 	// if( !items.tabs || !items.tabs.hasOwnProperty(tabId)){
+	 	// 	recheck = false;
 	 		chrome.tabs.sendMessage(tabId, {action:"recheck"}, function (response) {
-	 			recheck = true;
+	 			console.log(response)
+	 			// recheck = true;
 	 		});
-	 	}
+	 	// }
 	 });
 })
-chrome.storage.local.clear(function(){});
+// chrome.storage.local.clear(function(){});
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   		chrome.storage.local.get(null, function(items) {
 			if (request && request.action === 'registerTab') {
@@ -44,6 +45,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 					tabUrl: sender.tab.url,
 					videoCurrentTime: request.currentTime,
 					videoTotalTime: request.totalTime,
+					videoCurrentVolume: request.currentVolume,
 					isPlaying: request.isPlaying
 				}
 				saveChanges(saveObject, function() {

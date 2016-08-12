@@ -29,8 +29,20 @@ var startUpCheck = function(){
 			//     registered = true;
 			// };
 			videoDOMList[i].onpause  = function(event){
-				console.log(event.target.currentTime)
 			    updateStatus(event.target);
+			};
+			videoDOMList[i].onended  = function(event){
+			    updateStatus(event.target);
+			};
+			videoDOMList[i].onvolumechange  = function(event){
+				console.log("volumeChange");
+				// if (event.target.muted) {
+				// 	// if muted, show mute image
+					
+				// } else {
+				// 	// if not muted, show not muted image
+					
+				// }
 			};
 		}
 
@@ -58,6 +70,7 @@ var register = function(targetElement) {
 		action: 'registerTab',
 		totalTime: targetElement.duration,
 		currentTime: targetElement.currentTime,
+		currentVolume: targetElement.volume,
 		isPlaying: true
 	},
 	function(response) {
@@ -87,6 +100,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 		case "checktime":
 			sendResponse({
 				newTime: vid.currentTime,
+				newVolume: vid.volume,
 				tab:request.tab
 			});
 			break;			

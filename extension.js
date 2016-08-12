@@ -22,7 +22,18 @@ var positionScrub, volumeScrub, returnMessage;
 		$( cloned ).find(".selected").stop(true, true).width( cssScrollPosition );
 		cloned.getElementsByClassName("control-button")[2].innerHTML = formatTime(startTime) + '/' + formatTime(endTime);
 	}
+	function volumeVisualUpdate(tabKey) {
+		var VOLUME_BAR_WIDTH = $(document).find("div.volume-bar").last().width();
+		var HANDLE_WIDTH_RADIUS = $(document).find("div.volume-handle").last().width()/2;
+		var handleOffset = HANDLE_WIDTH_RADIUS/VOLUME_BAR_WIDTH;
 
+		var currentVolume = tabsHolder[tabKey].videoCurrentVolume;
+		var cloned = tabsHolder[tabKey].clone;
+
+		var cssScrollPosition = (currentVolume - handleOffset) * 100 + '%';
+		$( cloned ).find(".volume-level").stop(true, true).width( cssScrollPosition );
+		$( cloned ).find(".volume-handle").stop(true, true).animate( { left:cssScrollPosition }, 0, "linear");
+	}
 var retrieve = function(){
 	chrome.storage.local.get(null, function(items) {
 		tabsHolder = items;
@@ -43,12 +54,21 @@ var retrieve = function(){
 	    	tabsHolder[tabMap[key]].clone = clone;
 	    	chrome.tabs.sendMessage(tabsHolder[tabMap[key]].tabId, {action:'checktime',tab:tabMap[key]}, function (response){
 	    		tabsHolder[response.tab].videoCurrentTime = response.newTime;
+	    		tabsHolder[response.tab].videoCurrentVolume = response.newVolume;
+	    		volumeVisualUpdate(response.tab);
 	    		intervalVisualUpdate(response.tab);
 			});
+			
 			tabsHolder[tabMap[key]].timer = new InvervalTimer(function(tabKey){
 				tabsHolder[tabKey].videoCurrentTime += 1;
+				if(tabsHolder[tabKey].videoCurrentTime >= tabsHolder[tabKey].videoCurrentTime) {
+					tabsHolder[tabKey].videoCurrentTime = tabsHolder[tabKey].videoCurrentTime;
+					tabsHolder[tabKey].timer.toggle();
+					$(tabsHolder[tabKey].clone).find('.playPause').toggleClass('Paused');
+				}
 				intervalVisualUpdate(tabKey);
 			}, 1000, tabMap[key]);
+		
 			if(!tabsHolder[tabMap[key]].isPlaying){
 				tabsHolder[tabMap[key]].timer.toggle();
 				$(clone).find('.playPause').toggleClass('Paused');
@@ -124,23 +144,20 @@ var volumeMessageSet = function(volumeLevel){
 	}
 }
 
-var findVolume = function(pageX, setPercent){
-		var VOLUME_BAR_WIDTH = $(document).find("div.volume-bar").last().width();
-		var HANDLE_WIDTH_RADIUS = $(document).find("div.volume-handle").last().width()/2;
-		var VOLUME_BAR_OFFSET = $(document).find("div.volume-bar").last().offset().left;
-		var OFFSET = VOLUME_BAR_OFFSET;
-		var scrollPosition, volumeSet;
-		
-	if(!setPercent){
-		scrollPosition = (pageX - OFFSET);
-		volumeSet = (scrollPosition < 0? 0: scrollPosition > VOLUME_BAR_WIDTH? VOLUME_BAR_WIDTH:scrollPosition)/VOLUME_BAR_WIDTH;
-		scrollPosition = volumeSet - HANDLE_WIDTH_RADIUS/VOLUME_BAR_WIDTH;
-	}else{
-		scrollPosition = pageX/setPercent;
-	}
-	var cssScrollPosition = (scrollPosition) * 100 + '%';
-	$( volumeScrub ).find(".volume-level").stop(true, true).width( cssScrollPosition );
-	$( volumeScrub ).find(".volume-handle").stop(true, true).animate( { left:cssScrollPosition }, 0, "linear", volumeMessageSet(volumeSet)) ;	
+var findVolume = function(pageX, cTab){
+	var VOLUME_BAR_WIDTH = $(document).find("div.volume-bar").last().width();
+	var HANDLE_WIDTH_RADIUS = $(document).find("div.volume-handle").last().width()/2;
+	var VOLUME_BAR_OFFSET = $(document).find("div.volume-bar").last().offset().left;
+	var OFFSET = VOLUME_BAR_OFFSET;
+	var scrollPosition, volumeSet;
+	
+	scrollPosition = (pageX - OFFSET);
+	volumeSet = (scrollPosition < 0? 0: scrollPosition > VOLUME_BAR_WIDTH? VOLUME_BAR_WIDTH:scrollPosition)/VOLUME_BAR_WIDTH;
+	tabsHolder[cTab].videoCurrentVolume = volumeSet;
+
+	volumeVisualUpdate(cTab);
+	
+	volumeMessageSet(scrollPosition)
 }
 
 
@@ -168,7 +185,8 @@ var togglePlay = function(id) {
 var setTrackListeners = function(){
 	$("div.volume-bar").mousedown(function(event){
 		volumeScrub = event.currentTarget;
-		findVolume(event.pageX);
+		var cTab = $(event.currentTarget).parents('.track').attr('id');
+		findVolume(event.pageX, cTab);
 	});
 	
 	$("div.scroll-bar").mousedown(function(event){
@@ -180,7 +198,6 @@ var setTrackListeners = function(){
 	$("div.playPause").mousedown(function(event){
 		// $(event.currentTarget).toggleClass()
 		$(event.currentTarget).toggleClass('Paused');
-	
 		togglePlay($(event.currentTarget).parents('.track').attr('id'));
 	});
 	// $("div.volume").mousedown(function(event){
@@ -189,7 +206,6 @@ var setTrackListeners = function(){
 	// });
 	$("div.track").mousedown(function(event){
 		tabIndex = event.currentTarget.id;
-		console.log(tabIndex);
 		return false;
 	});
 }
@@ -202,8 +218,6 @@ $(document).mouseup(function(e){
 		});	
 		console.log("MessageSent");
 	}
-	
-
 	//Clean
     positionScrub = null;
     volumeScrub = null;
@@ -214,9 +228,11 @@ $(document).mouseup(function(e){
 
 $(document).on('mousemove', function(e){
 	if(positionScrub){
-		findPosition(e.pageX);
+		var cTab = $(positionScrub).parents('.track').attr('id');
+		findPosition(event.pageX, cTab);
 	}else if(volumeScrub){
-		findVolume(e.pageX);
+		var cTab = $(volumeScrub).parents('.track').attr('id');
+		findVolume(e.pageX, cTab);
 	}
 	return false;
 });
