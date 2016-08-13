@@ -61,8 +61,8 @@ var retrieve = function(){
 			
 			tabsHolder[tabMap[key]].timer = new InvervalTimer(function(tabKey){
 				tabsHolder[tabKey].videoCurrentTime += 1;
-				if(tabsHolder[tabKey].videoCurrentTime >= tabsHolder[tabKey].videoCurrentTime) {
-					tabsHolder[tabKey].videoCurrentTime = tabsHolder[tabKey].videoCurrentTime;
+				if(tabsHolder[tabKey].videoCurrentTime >= tabsHolder[tabKey].videoTotalTime) {
+					tabsHolder[tabKey].videoCurrentTime = tabsHolder[tabKey].videoTotalTime;
 					tabsHolder[tabKey].timer.toggle();
 					$(tabsHolder[tabKey].clone).find('.playPause').toggleClass('Paused');
 				}
