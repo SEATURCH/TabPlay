@@ -11,7 +11,6 @@ chrome.tabs.onRemoved.addListener(function(tabId, removeInfo){
 	chrome.storage.local.get(null, function(items) {
 		if(items.tabs.hasOwnProperty(tabId)){
 			chrome.storage.local.remove(items.tabs[tabId].toString(), function(){
-				console.log("successfull removal");
 				delete items.tabs[tabId];
 			});
 		}
@@ -21,13 +20,7 @@ chrome.tabs.onRemoved.addListener(function(tabId, removeInfo){
 chrome.webNavigation.onCompleted.addListener(function (details) {
  	var tabId = details.tabId;
  	chrome.storage.local.get(null, function(items) {
-	 	// if( !items.tabs || !items.tabs.hasOwnProperty(tabId)){
-	 	// 	recheck = false;
-	 		chrome.tabs.sendMessage(tabId, {action:"recheck"}, function (response) {
-	 			console.log(response)
-	 			// recheck = true;
-	 		});
-	 	// }
+	 		chrome.tabs.sendMessage(tabId, {action:"recheck"}, function (response) {});
 	 });
 })
 // chrome.storage.local.clear(function(){});
@@ -56,10 +49,13 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 				var updateObject = {};
 				updateObject[sender.tab.id] = items[sender.tab.id];
 				updateObject[sender.tab.id].isPlaying = false;
-				saveChanges(updateObject, function(){console.log("StateUpdateComplete")});
+				saveChanges(updateObject, function(){});
+			} else if (request && request.action === "volumeUpdate"){
+				var updateObject = {};
+				updateObject[sender.tab.id] = items[sender.tab.id];
+				updateObject[sender.tab.id].videoCurrentVolume = request.newVolume;
+				saveChanges(updateObject, function(){});
 			}
 		});
 });
 
-
-// startUp();

@@ -15,10 +15,12 @@ div.button{
     padding:3px 3px 3px 3px;
     top:7px;
     height:25px;
+    line-height:25px;
 }
 
 .control-button {
 	height:100%;
+    line-height: inherit;
 	width:25px;
 	background-size: 75% 75%;
     background-repeat: no-repeat;
@@ -121,12 +123,15 @@ div.button{
     /*height:450px;*/
 }
 
-#tabTitle{
+#tabTitle {
+    white-space: nowrap;
+    font-size: 0.70em;
     overflow: hidden;
     text-overflow: ellipsis;
     width: 100px;
+    padding-right: 10px;
 }
 
 #time{
-    
+    font-size: 0.8em;
 }

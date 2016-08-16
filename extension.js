@@ -10,14 +10,13 @@ var positionScrub, volumeScrub, returnMessage;
 			return (new Array(length+1).join(pad)+string).slice(-length);	
 		}
 		hours = (hours)? stringMaker(hours,'0',Math.floor(Math.log(hours))) +':' : '';
-		minutes = stringMaker(minutes,'0',(hours)?2:1) +':'; 
+		minutes = stringMaker(minutes,'0',(minutes >= 10 || hours)?2:1) +':'; 
 		return hours + minutes + stringMaker(seconds,'0',2);
 	}
 	function intervalVisualUpdate(tabKey) {
 		var startTime = tabsHolder[tabKey].videoCurrentTime;
 		var endTime = tabsHolder[tabKey].videoTotalTime;
 		var cloned = tabsHolder[tabKey].clone;
-		// console.log(tabsHolder);
 		var cssScrollPosition = startTime/endTime * 100 + '%';
 		$( cloned ).find(".selected").stop(true, true).width( cssScrollPosition );
 		cloned.getElementsByClassName("control-button")[2].innerHTML = formatTime(startTime) + '/' + formatTime(endTime);
@@ -54,7 +53,6 @@ var retrieve = function(){
 	    	tabsHolder[tabMap[key]].clone = clone;
 	    	chrome.tabs.sendMessage(tabsHolder[tabMap[key]].tabId, {action:'checktime',tab:tabMap[key]}, function (response){
 	    		tabsHolder[response.tab].videoCurrentTime = response.newTime;
-	    		tabsHolder[response.tab].videoCurrentVolume = response.newVolume;
 	    		volumeVisualUpdate(response.tab);
 	    		intervalVisualUpdate(response.tab);
 			});
@@ -83,7 +81,6 @@ function InvervalTimer(callback, interval, tabKey) {
     var state = 0; //  0 = idle, 1 = running, 2 = paused, 3= resumed
 
     this.toggle = function(){
-    	console.log(state);
     	switch(state){
     		case 1:
 	    		this.pause();
@@ -112,7 +109,6 @@ function InvervalTimer(callback, interval, tabKey) {
 
     this.timeoutCallback = function () {
         if (state != 3) return;
-        // callback(tabKey);
 
         startTime = new Date();
         timerId = window.setInterval(callback, interval, tabKey);
@@ -156,8 +152,7 @@ var findVolume = function(pageX, cTab){
 	tabsHolder[cTab].videoCurrentVolume = volumeSet;
 
 	volumeVisualUpdate(cTab);
-	
-	volumeMessageSet(scrollPosition)
+	volumeMessageSet(volumeSet)
 }
 
 
@@ -172,8 +167,6 @@ var findPosition = function(pageX, cTab) {
 	tabsHolder[cTab].videoCurrentTime = tabsHolder[cTab].videoTotalTime * scrollPosition;
 
 	intervalVisualUpdate(cTab);
-	// var cssScrollPosition = scrollPosition * 100 + '%';
-	// $( positionScrub ).find(".selected").stop(true, true).width( cssScrollPosition );
 	jumpToMessageSet(scrollPosition);	
 }
 
@@ -196,14 +189,9 @@ var setTrackListeners = function(){
 	});
 
 	$("div.playPause").mousedown(function(event){
-		// $(event.currentTarget).toggleClass()
 		$(event.currentTarget).toggleClass('Paused');
 		togglePlay($(event.currentTarget).parents('.track').attr('id'));
 	});
-	// $("div.volume").mousedown(function(event){
-	// 	//TODO
-	// 	volumeMessageSet(1);
-	// });
 	$("div.track").mousedown(function(event){
 		tabIndex = event.currentTarget.id;
 		return false;
@@ -213,10 +201,7 @@ var setTrackListeners = function(){
 $(document).mouseup(function(e){
     //Send Message
     if(returnMessage){
-	    chrome.tabs.sendMessage(tabsHolder[tabIndex].tabId, returnMessage, function (){
-			console.log("Years");
-		});	
-		console.log("MessageSent");
+	    chrome.tabs.sendMessage(tabsHolder[tabIndex].tabId, returnMessage, function (){});	
 	}
 	//Clean
     positionScrub = null;

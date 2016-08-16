@@ -1,8 +1,5 @@
 // JavaScript source code
 //Document already loaded on content script injection
-document.onload = function () {
-    console.log("ran");
-}
 
 var registered = false;;
 var tabIds = [];	
@@ -14,20 +11,10 @@ var startUpCheck = function(){
 	videoDOMList = document.getElementsByTagName("video");
 	if( videoDOMList.length ){
 		for(var i=0; i < videoDOMList.length; i++ ){
-			
-			// videoDOMList[i].addEventListener("playing", function(event){
-			//     register(event.target);
-			//     registered = true;
-			// });
 			videoDOMList[i].addEventListener("playing", function(event){
 			    register(event.target);
 			    registered = true;
 			});
-			// videoDOMList[i].onplay = function(event){
-			// 	console.log("OKOK")
-			//     register(event.target);
-			//     registered = true;
-			// };
 			videoDOMList[i].onpause  = function(event){
 			    updateStatus(event.target);
 			};
@@ -35,18 +22,23 @@ var startUpCheck = function(){
 			    updateStatus(event.target);
 			};
 			videoDOMList[i].onvolumechange  = function(event){
-				console.log("volumeChange");
-				// if (event.target.muted) {
-				// 	// if muted, show mute image
-					
-				// } else {
-				// 	// if not muted, show not muted image
-					
-				// }
+				var newVolume = (event.target.muted)? 'muted' : event.target.volume;
+				volumeUpdate(event.target, newVolume);
 			};
 		}
 
 	}
+}
+
+var volumeUpdate = function(targetElement, newVolume) {
+	if(!targetElement.duration)
+		return;
+	
+	chrome.runtime.sendMessage({
+		action:"volumeUpdate",
+		newVolume: newVolume
+	},
+	function(response) {});
 }
 
 var updateStatus = function(targetElement) {
@@ -57,9 +49,7 @@ var updateStatus = function(targetElement) {
 		action:"updateStatus",
 		isPlaying: false
 	},
-	function(response) {
-		console.log("RegisteredPause");
-	});
+	function(response) {});
 }
 
 var register = function(targetElement) {
@@ -73,9 +63,7 @@ var register = function(targetElement) {
 		currentVolume: targetElement.volume,
 		isPlaying: true
 	},
-	function(response) {
-		console.log("RegisteredPlay");
-	});
+	function(response) {});
 }
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
@@ -92,6 +80,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 			}
 			break;
 		case "soundControl":
+			vid.muted = false;
 			vid.volume = request.value;
 			break;
 		case "recheck":
@@ -108,10 +97,3 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 			break;	
 	}
 });
-
-// var hasChange = function(){
-// 	console.log("SSSS");
-// }
-// window.onhashchange = hasChange();
-
-// startUpCheck();
