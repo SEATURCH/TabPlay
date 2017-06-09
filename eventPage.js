@@ -9,10 +9,8 @@ var saveChanges = function (theValue, cb) {
 
 chrome.tabs.onRemoved.addListener(function(tabId, removeInfo){
 	chrome.storage.local.get(null, function(items) {
-		if(items.tabs.hasOwnProperty(tabId)){
-			chrome.storage.local.remove(items.tabs[tabId].toString(), function(){
-				delete items.tabs[tabId];
-			});
+		if(items.hasOwnProperty(tabId)){
+			chrome.storage.local.remove(tabId.toString(), function(){});
 		}
 	});
 });
@@ -27,11 +25,8 @@ chrome.webNavigation.onCompleted.addListener(function (details) {
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   		chrome.storage.local.get(null, function(items) {
 			if (request && request.action === 'registerTab') {
-  				items.tabs = items.tabs || {};
-  			    var nextEntry = sender.tab.id;
-			    items.tabs[sender.tab.id] = nextEntry;
-			    var saveObject = {};
-			    saveObject[nextEntry] = {
+  				var saveObject = {};
+			    saveObject[sender.tab.id] = {
 					senderTab: sender.tab,
 					tabId: sender.tab.id,
 					tabTitle: sender.tab.title,
@@ -39,12 +34,12 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 					videoCurrentTime: request.currentTime,
 					videoTotalTime: request.totalTime,
 					videoCurrentVolume: request.currentVolume,
-					isPlaying: request.isPlaying
+					isPlaying: request.isPlaying,
+					isLoop: request.isLoop
 				}
 				saveChanges(saveObject, function() {
 					sendResponse('Tab registered');
 				});
-				saveChanges({tabs:items.tabs}, function(){});
 			} else if (request && request.action === "updateStatus"){
 				var updateObject = {};
 				updateObject[sender.tab.id] = items[sender.tab.id];
@@ -54,6 +49,11 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 				var updateObject = {};
 				updateObject[sender.tab.id] = items[sender.tab.id];
 				updateObject[sender.tab.id].videoCurrentVolume = request.newVolume;
+				saveChanges(updateObject, function(){});
+			} else if (request && request.action === "loopUpdate"){
+				var updateObject = {};
+				updateObject[sender.tab.id] = items[sender.tab.id];
+				updateObject[sender.tab.id].isLoop = request.loopBoolean;
 				saveChanges(updateObject, function(){});
 			}
 		});

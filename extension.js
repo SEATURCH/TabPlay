@@ -19,7 +19,7 @@ var positionScrub, volumeScrub, returnMessage;
 		var cloned = tabsHolder[tabKey].clone;
 		var cssScrollPosition = startTime/endTime * 100 + '%';
 		$( cloned ).find(".selected").stop(true, true).width( cssScrollPosition );
-		cloned.getElementsByClassName("control-button")[2].innerHTML = formatTime(startTime) + '/' + formatTime(endTime);
+		cloned.getElementsByClassName("control-button")[3].innerHTML = formatTime(startTime) + '/' + formatTime(endTime);
 	}
 	function volumeVisualUpdate(tabKey) {
 		var VOLUME_BAR_WIDTH = $(document).find("div.volume-bar").last().width();
@@ -39,15 +39,13 @@ var retrieve = function(){
 	    tabMap = Object.keys(tabsHolder);
 	    var template = document.getElementById("template");
 	    for(var key=0; key < tabMap.length; key++){
-	    	if(tabMap[key] == 'tabs')
-	    		continue;
 	    	var clone = template.cloneNode(true);
 	    	clone.style.display = '';
 	    	clone.id = tabMap[key];
 	    	clone.getElementsByTagName('')
-	    	clone.getElementsByClassName("control-button")[1].innerHTML = items[tabMap[key]].tabTitle;
-	    	clone.getElementsByClassName("control-button")[1].title = items[tabMap[key]].tabTitle;
-	    	clone.getElementsByClassName("control-button")[2].innerHTML = formatTime(items[tabMap[key]].videoCurrentTime) + '/' + formatTime(items[tabMap[key]].videoTotalTime);
+	    	clone.getElementsByClassName("control-button")[2].innerHTML = items[tabMap[key]].tabTitle;
+	    	clone.getElementsByClassName("control-button")[2].title = items[tabMap[key]].tabTitle;
+	    	clone.getElementsByClassName("control-button")[3].innerHTML = formatTime(items[tabMap[key]].videoCurrentTime) + '/' + formatTime(items[tabMap[key]].videoTotalTime);
 	    	document.getElementById("container").appendChild(clone);
 
 	    	tabsHolder[tabMap[key]].clone = clone;
@@ -60,9 +58,13 @@ var retrieve = function(){
 			tabsHolder[tabMap[key]].timer = new InvervalTimer(function(tabKey){
 				tabsHolder[tabKey].videoCurrentTime += 1;
 				if(tabsHolder[tabKey].videoCurrentTime >= tabsHolder[tabKey].videoTotalTime) {
-					tabsHolder[tabKey].videoCurrentTime = tabsHolder[tabKey].videoTotalTime;
-					tabsHolder[tabKey].timer.toggle();
-					$(tabsHolder[tabKey].clone).find('.playPause').toggleClass('Paused');
+					if (tabsHolder[tabKey].isLoop){
+						tabsHolder[tabKey].videoCurrentTime = 0;
+					} else {
+						tabsHolder[tabKey].videoCurrentTime = tabsHolder[tabKey].videoTotalTime;
+						tabsHolder[tabKey].timer.toggle();
+						$(tabsHolder[tabKey].clone).find('.playPause').toggleClass('Paused');
+					}
 				}
 				intervalVisualUpdate(tabKey);
 			}, 1000, tabMap[key]);
@@ -70,6 +72,10 @@ var retrieve = function(){
 			if(!tabsHolder[tabMap[key]].isPlaying){
 				tabsHolder[tabMap[key]].timer.toggle();
 				$(clone).find('.playPause').toggleClass('Paused');
+			}
+
+			if(tabsHolder[tabMap[key]].isLoop){
+				$(clone).find('.repeat').toggleClass('repeatOn');
 			}
 	    }
 	    setTrackListeners();
@@ -133,6 +139,12 @@ var playMessageSet = function(){
 	}
 }
 
+var repeatMessageSet = function(){
+	returnMessage = {
+		action: "toggleRepeat",
+	}
+}
+
 var volumeMessageSet = function(volumeLevel){
 	returnMessage = {
 		action: "soundControl",
@@ -175,6 +187,12 @@ var togglePlay = function(id) {
 	playMessageSet();
 }
 
+var toggleRepeat = function(id) {
+	// tabsHolder[id].timer.toggle();
+	tabsHolder[id].isLoop = !tabsHolder[id].isLoop;
+	repeatMessageSet();
+}
+
 var setTrackListeners = function(){
 	$("div.volume-bar").mousedown(function(event){
 		volumeScrub = event.currentTarget;
@@ -192,6 +210,12 @@ var setTrackListeners = function(){
 		$(event.currentTarget).toggleClass('Paused');
 		togglePlay($(event.currentTarget).parents('.track').attr('id'));
 	});
+
+	$("div.repeat").mousedown(function(event){
+		$(event.currentTarget).toggleClass('repeatOn');
+		toggleRepeat($(event.currentTarget).parents('.track').attr('id'));
+	});
+
 	$("div.track").mousedown(function(event){
 		tabIndex = event.currentTarget.id;
 		return false;

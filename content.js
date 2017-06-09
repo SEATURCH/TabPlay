@@ -33,7 +33,7 @@ var startUpCheck = function(){
 var volumeUpdate = function(targetElement, newVolume) {
 	if(!targetElement.duration)
 		return;
-	
+	console.log("Volume Content");
 	chrome.runtime.sendMessage({
 		action:"volumeUpdate",
 		newVolume: newVolume
@@ -52,6 +52,14 @@ var updateStatus = function(targetElement) {
 	function(response) {});
 }
 
+var loopUpdate = function(loopBoolean) {
+	chrome.runtime.sendMessage({
+		action:"loopUpdate",
+		loopBoolean: loopBoolean
+	},
+	function(response) {});
+}
+
 var register = function(targetElement) {
 	if(!targetElement.duration)
 		return;
@@ -61,6 +69,7 @@ var register = function(targetElement) {
 		totalTime: targetElement.duration,
 		currentTime: targetElement.currentTime,
 		currentVolume: targetElement.volume,
+		isLoop: targetElement.loop,
 		isPlaying: true
 	},
 	function(response) {});
@@ -79,6 +88,10 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 				vid.pause();
 			}
 			break;
+		case "toggleRepeat":
+			vid.loop = !vid.loop;
+			loopUpdate(vid.loop);
+			break;	
 		case "soundControl":
 			vid.muted = false;
 			vid.volume = request.value;
